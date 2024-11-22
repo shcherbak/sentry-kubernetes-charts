@@ -709,6 +709,9 @@ Common Sentry environment variables
     secretKeyRef:
       name: {{ .Values.externalPostgresql.existingSecret }}
       key: {{ default .Values.externalPostgresql.existingSecretKeys.host }}
+{{- else if .Values.pgbouncer.ebabled }}
+- name: POSTGRES_HOST
+  value: {{ template "sentry.fullname" . }}-pgbouncer
 {{- else }}
 - name: POSTGRES_HOST
   value: {{ include "sentry.postgresql.host" . | quote }}
@@ -875,4 +878,57 @@ Common Sentry environment variables
 {{- else -}}
 {{- print "autoscaling/v1" -}}
 {{- end -}}
+{{- end -}}
+
+
+{{/*
+Pgbouncer environment variables
+*/}}
+{{- define "sentry.pgbouncer.env" -}}
+{{- if and .Values.externalPostgresql.existingSecret .Values.externalPostgresql.existingSecretKeys.host }}
+- name: POSTGRESQL_HOST
+  valueFrom:
+    secretKeyRef:
+      name: {{ .Values.externalPostgresql.existingSecret }}
+      key: {{ default .Values.externalPostgresql.existingSecretKeys.host }}
+{{- else }}
+- name: POSTGRESQL_HOST
+  value: {{ include "sentry.postgresql.host" . | quote }}
+{{- end }}
+{{- if and .Values.externalPostgresql.existingSecret .Values.externalPostgresql.existingSecretKeys.database }}
+- name: PGBOUNCER_DATABASE
+  valueFrom:
+    secretKeyRef:
+      name: {{ .Values.externalPostgresql.existingSecret }}
+      key: {{ default .Values.externalPostgresql.existingSecretKeys.database }}
+{{- else }}
+- name: PGBOUNCER_DATABASE
+  value: {{ include "sentry.postgresql.database" . | quote }}
+{{- end }}
+{{- if .Values.postgresql.enabled }}
+- name: POSTGRES_PASSWORD
+  valueFrom:
+    secretKeyRef:
+      name: {{ default (include "sentry.postgresql.fullname" .) .Values.postgresql.auth.existingSecret }}
+      key: {{ default "postgres-password" .Values.postgresql.auth.secretKeys.adminPasswordKey }}
+{{- else if .Values.externalPostgresql.password }}
+- name: POSTGRESQL_PASSWORD
+  value: {{ .Values.externalPostgresql.password | quote }}
+{{- else if .Values.externalPostgresql.existingSecret }}
+- name: POSTGRESQL_PASSWORD
+  valueFrom:
+    secretKeyRef:
+      name: {{ .Values.externalPostgresql.existingSecret }}
+      key: {{ or .Values.externalPostgresql.existingSecretKeys.password .Values.externalPostgresql.existingSecretKey "postgresql-password" }}
+{{- end }}
+{{- if and .Values.externalPostgresql.existingSecret .Values.externalPostgresql.existingSecretKeys.username }}
+- name: POSTGRESQL_USERNAME
+  valueFrom:
+    secretKeyRef:
+      name: {{ .Values.externalPostgresql.existingSecret }}
+      key: {{ default .Values.externalPostgresql.existingSecretKeys.username }}
+{{- else }}
+- name: POSTGRESQL_USERNAME
+  value: {{ include "sentry.postgresql.username" . | quote }}
+{{- end }}
 {{- end -}}
