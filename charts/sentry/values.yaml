@@ -2474,7 +2474,7 @@ pgbouncer:
     pullPolicy: IfNotPresent
   replicas: 2
   podDisruptionBudget:
-    ebabled: true
+    enabled: true
     # Define either 'minAvailable' or 'maxUnavailable', never both.
     minAvailable: 1
     # -- Maximum unavailable pods set in PodDisruptionBudget. If set, 'minAvailable' is ignored.
