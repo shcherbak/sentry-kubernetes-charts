@@ -1,5 +1,5 @@
-{{- if .Values.pgbouncer.ebabled }}
-{{- if .Values.pgbouncer.podDisruptionBudget.ebabled }}
+{{- if .Values.pgbouncer.enabled }}
+{{- if .Values.pgbouncer.podDisruptionBudget.enabled }}
 ---
 apiVersion: policy/v1
 kind: PodDisruptionBudget
